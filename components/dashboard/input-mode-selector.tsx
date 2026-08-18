@@ -166,7 +166,11 @@ export function InputModeSelector({
                 <select
                   id="dataset-select"
                   value={selectedDatasetId}
-                  onChange={(e) => setSelectedDatasetId(e.target.value)}
+                  onChange={(e) => {
+                    const newId = e.target.value
+                    setSelectedDatasetId(newId)
+                    onAnalyze('dataset', undefined, undefined, newId)
+                  }}
                   className="w-full h-11 px-3.5 pr-10 rounded-xl border border-primary/40 bg-card text-foreground text-xs sm:text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all cursor-pointer appearance-none"
                 >
                   {DATASETS.map((ds) => (
