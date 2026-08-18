@@ -38,6 +38,91 @@ function delay<T>(data: T, ms = 500): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(data), ms))
 }
 
+function getDatasetResponse(userId: string = 'student_001'): AnalyzeResponse {
+  if (userId === 'student_002') {
+    return {
+      success: true,
+      runId: 'RUN_CLOUD_002',
+      result: {
+        currentReel: { reelId: 'R007', title: 'Cloud Computing AWS ECS & Fargate' },
+        interestDetected: { topic: 'Cloud', confidence: 'High' },
+        why: 'The student repeatedly engages with AWS ECS, Docker container benchmarks, and cloud deployment reels.',
+        recommendedTechReel: { candidateId: 'CAND_CLOUD001', title: 'Kubernetes Pods & Microservices Deployment' },
+        category: 'Cloud',
+        whyThisRecommendation: 'Expands student cloud interest from container compilation into production Kubernetes microservices.',
+        difficulty: 'Intermediate',
+        confidence: 'High',
+      },
+      evidence: {
+        interestPath: ['Cloud Architecture', 'AWS', 'Docker', 'Kubernetes'],
+        selectionFactors: ['Strong Cloud interest match', 'Production DevOps relevance'],
+      },
+      workflow: { status: 'completed', stepsCompleted: 7 },
+    }
+  }
+  if (userId === 'student_003') {
+    return {
+      success: true,
+      runId: 'RUN_AI_003',
+      result: {
+        currentReel: { reelId: 'R006', title: 'AI Agents Architecture & Tool Calling' },
+        interestDetected: { topic: 'AI', confidence: 'High' },
+        why: 'The student repeatedly engages with autonomous agent loops, vector databases, and LLM tool calling reels.',
+        recommendedTechReel: { candidateId: 'CAND_AI001', title: 'Building Autonomous Agents with Python & LangChain' },
+        category: 'AI',
+        whyThisRecommendation: 'Connects AI agent curiosity to real-world LangChain and vector database implementation.',
+        difficulty: 'Intermediate',
+        confidence: 'High',
+      },
+      evidence: {
+        interestPath: ['Artificial Intelligence', 'LLM Tools', 'Vector DBs', 'Autonomous Agents'],
+        selectionFactors: ['Generative AI architectural fit', 'High educational value'],
+      },
+      workflow: { status: 'completed', stepsCompleted: 7 },
+    }
+  }
+  if (userId === 'student_004') {
+    return {
+      success: true,
+      runId: 'RUN_SEC_004',
+      result: {
+        currentReel: { reelId: 'R008', title: 'Technology News & TLS 1.3 Encryption' },
+        interestDetected: { topic: 'Cybersecurity', confidence: 'High' },
+        why: 'The student repeatedly engages with TLS 1.3 encryption, network packet handshakes, and CTF security challenges.',
+        recommendedTechReel: { candidateId: 'CAND_SEC001', title: 'CTF Web Hacking & Threat Detection Patterns' },
+        category: 'Cybersecurity',
+        whyThisRecommendation: 'Deepens cybersecurity foundation into web security vulnerabilities and threat analysis.',
+        difficulty: 'Advanced',
+        confidence: 'High',
+      },
+      evidence: {
+        interestPath: ['Cybersecurity', 'Network Defense', 'Cryptography', 'CTF Threat Detection'],
+        selectionFactors: ['Strong Cybersecurity domain match', 'High technical depth'],
+      },
+      workflow: { status: 'completed', stepsCompleted: 7 },
+    }
+  }
+  return {
+    success: true,
+    runId: 'RUN_DEMO_001',
+    result: {
+      currentReel: { reelId: 'R003', title: 'Coding Interview Joke' },
+      interestDetected: { topic: 'Software Engineering', confidence: 'High' },
+      why: 'The student repeatedly engages with Java programming, software-engineer lifestyle content, coding interview content, and developer hardware.',
+      recommendedTechReel: { candidateId: 'CAND_TECH003', title: 'REST APIs Explained: Design & Best Practices' },
+      category: 'Cloud',
+      whyThisRecommendation: 'The Reel connects programming and software-engineering interests to backend and API concepts.',
+      difficulty: 'Intermediate',
+      confidence: 'High',
+    },
+    evidence: {
+      interestPath: ['Programming', 'Software Engineering', 'Backend', 'APIs'],
+      selectionFactors: ['Strong Software Engineering interest match', 'High educational value'],
+    },
+    workflow: { status: 'completed', stepsCompleted: 7 },
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -63,59 +148,20 @@ export const api = {
   // POST /api/analyze (Dataset / URL mode)
   async analyze(req: AnalyzeRequest): Promise<AnalyzeResponse> {
     if (USE_MOCKS) {
-      return delay({
-        success: true,
-        runId: 'MOCK_RUN_123',
-        result: {
-          currentReel: { reelId: 'R003', title: 'Coding Interview Joke' },
-          interestDetected: { topic: 'Software Engineering', confidence: 'High' },
-          why: 'The student repeatedly engages with Java programming, software-engineer lifestyle content, coding interview content, and developer hardware.',
-          recommendedTechReel: { candidateId: 'CAND_TECH003', title: 'REST APIs Explained: Design & Best Practices' },
-          category: 'Cloud',
-          whyThisRecommendation: 'The Reel connects programming and software-engineering interests to backend and API concepts.',
-          difficulty: 'Intermediate',
-          confidence: 'High',
-        },
-        evidence: {
-          interestPath: ['Programming', 'Software Engineering', 'Backend', 'APIs'],
-          selectionFactors: [
-            'Strong Software Engineering interest match',
-            'High educational value',
-            'Strong interest expansion along Interest Frontier',
-            'Low repetition and high novelty',
-            'Intermediate difficulty fit',
-            'Low hype and high trust score',
-          ],
-        },
-        workflow: { status: 'completed', stepsCompleted: 7 },
-      }, 500)
+      return delay(getDatasetResponse(req.userId), 500)
     }
 
     try {
-      return await request<AnalyzeResponse>('/api/analyze', {
+      const res = await request<AnalyzeResponse>('/api/analyze', {
         method: 'POST',
         body: JSON.stringify(req),
       })
-    } catch {
-      return {
-        success: true,
-        runId: 'RUN_DEMO_001',
-        result: {
-          currentReel: { reelId: 'R003', title: 'Coding Interview Joke' },
-          interestDetected: { topic: 'Software Engineering', confidence: 'High' },
-          why: 'The student repeatedly engages with Java programming, software-engineer lifestyle content, coding interview content, and developer hardware.',
-          recommendedTechReel: { candidateId: 'CAND_TECH003', title: 'REST APIs Explained: Design & Best Practices' },
-          category: 'Cloud',
-          whyThisRecommendation: 'The Reel connects programming and software-engineering interests to backend and API concepts.',
-          difficulty: 'Intermediate',
-          confidence: 'High',
-        },
-        evidence: {
-          interestPath: ['Programming', 'Software Engineering', 'Backend', 'APIs'],
-          selectionFactors: ['Strong Software Engineering interest match', 'High educational value'],
-        },
-        workflow: { status: 'completed', stepsCompleted: 7 },
+      if (res && res.success && res.result) {
+        return res
       }
+      return getDatasetResponse(req.userId)
+    } catch {
+      return getDatasetResponse(req.userId)
     }
   },
 

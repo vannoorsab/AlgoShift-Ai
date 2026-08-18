@@ -16,14 +16,14 @@ export function ChallengeOutputCard({ result }: ChallengeOutputCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="size-5 text-primary" />
-            <CardTitle className="text-lg">Required Challenge Output</CardTitle>
+            <CardTitle className="text-lg">Recommendation Output</CardTitle>
           </div>
           <Badge variant="outline" className="border-primary/40 text-primary font-mono text-xs">
             Agentic AI Verification
           </Badge>
         </div>
         <CardDescription>
-          Exact 8-field structured challenge recommendation output
+          Structured 8-field agentic recommendation output
         </CardDescription>
       </CardHeader>
 
