@@ -50,6 +50,7 @@ async def health_check():
         "mongodb": mongo_status
     }
 
-# Mount API routers (both /api and /api/v1 for 1:1 frontend parity)
+# Mount API routers (root, /api, and /api/v1 for 100% route matching)
+app.include_router(api_router)
 app.include_router(api_router, prefix="/api")
 app.include_router(api_router, prefix="/api/v1")
