@@ -10,15 +10,14 @@ import { RecommendationCard } from '@/components/shared/recommendation-card'
 import { HypeShieldCard } from '@/components/shared/hype-shield-card'
 import { InterestProgress } from '@/components/shared/interest-progress'
 import { InterestInferenceCard } from '@/components/dashboard/interest-inference-card'
-import { InterestGraph } from '@/components/shared/interest-graph'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { LoadingState } from '@/components/shared/states'
 import { api } from '@/lib/api-client'
 import type { AnalyzeResponse, InputMode, RejectedContent, Interest, InterestInference } from '@/lib/types'
-import { ShieldCheck, Compass } from 'lucide-react'
+import { Compass } from 'lucide-react'
 
 export default function DashboardPage() {
-  const [userId] = useState('student_001')
+  const [userId, setUserId] = useState('student_001')
   const [isLoading, setIsLoading] = useState(false)
   const [isNextLoading, setIsNextLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -30,16 +29,15 @@ export default function DashboardPage() {
 
   // Run initial default dataset analysis on load
   useEffect(() => {
-    runAnalysis('dataset')
-    fetchAuxiliaryData()
+    runAnalysis('dataset', undefined, undefined, 'student_001')
   }, [])
 
-  async function fetchAuxiliaryData() {
+  async function fetchAuxiliaryData(targetUserId: string) {
     try {
       const [ints, inf, rej] = await Promise.all([
-        api.getInterests(userId),
-        api.getInterestInference(userId),
-        api.getRejectedContent(userId),
+        api.getInterests(targetUserId),
+        api.getInterestInference(targetUserId),
+        api.getRejectedContent(targetUserId),
       ])
       setInterests(ints)
       setInference(inf)
@@ -49,23 +47,25 @@ export default function DashboardPage() {
     }
   }
 
-  async function runAnalysis(mode: InputMode, url?: string, file?: File) {
+  async function runAnalysis(mode: InputMode, url?: string, file?: File, targetUserId?: string) {
+    const activeUser = targetUserId || userId
+    setUserId(activeUser)
     setIsLoading(true)
     setErrorMessage(null)
 
     try {
       let res: AnalyzeResponse
       if (mode === 'upload' && file) {
-        res = await api.analyzeUpload(file, userId)
+        res = await api.analyzeUpload(file, activeUser)
       } else {
-        res = await api.analyze({ userId, inputMode: mode, url })
+        res = await api.analyze({ userId: activeUser, inputMode: mode, url })
       }
 
       setAnalyzeResponse(res)
       if (!res.success && res.error) {
         setErrorMessage(res.error.message)
       } else {
-        await fetchAuxiliaryData()
+        await fetchAuxiliaryData(activeUser)
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to execute recommendation workflow.')
@@ -84,7 +84,7 @@ export default function DashboardPage() {
       if (!res.success && res.error) {
         setErrorMessage(res.error.message)
       } else {
-        await fetchAuxiliaryData()
+        await fetchAuxiliaryData(userId)
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to generate next recommendation.')
@@ -97,14 +97,15 @@ export default function DashboardPage() {
     <>
       <PageHeader title="Dashboard" description="Your personalized agentic recommendation feed" />
       <div className="mx-auto w-full max-w-6xl space-y-8 p-4 md:p-6">
-        <HeroSection onTryDemo={() => runAnalysis('dataset')} />
+        <HeroSection onTryDemo={() => runAnalysis('dataset', undefined, undefined, 'student_001')} />
 
-        {/* INPUT MODE SELECTOR */}
+        {/* INPUT MODE SELECTOR & DATASET SWITCHER */}
         <InputModeSelector
-          onAnalyze={(mode, url, file) => runAnalysis(mode, url, file)}
-          onTryDemo={() => runAnalysis('dataset')}
+          onAnalyze={(mode, url, file, selectedStudentId) => runAnalysis(mode, url, file, selectedStudentId)}
+          onTryDemo={() => runAnalysis('dataset', undefined, undefined, 'student_001')}
           isLoading={isLoading}
           errorMessage={errorMessage}
+          activeStudentId={userId}
         />
 
         {/* AGENTIC PROGRESS UI */}
@@ -137,7 +138,7 @@ export default function DashboardPage() {
           {/* INTEREST PROFILE */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Primary & Inferred Interests</CardTitle>
+              <CardTitle className="text-base">Primary & Inferred Interests ({userId})</CardTitle>
               <CardDescription>Inferred from your interactions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

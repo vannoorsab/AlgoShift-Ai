@@ -6,13 +6,76 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { InputMode } from '@/lib/types'
-import { Sparkles, Upload, Link as LinkIcon, Database, AlertCircle, FileVideo } from 'lucide-react'
+import { Sparkles, Upload, Link as LinkIcon, Database, AlertCircle, FileVideo, Eye, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react'
+
+export interface DatasetItem {
+  id: string
+  name: string
+  targetDomain: string
+  description: string
+  badge: string
+  reels: { id: string; title: string; topic: string; category: string; hashtags: string[] }[]
+}
+
+export const DATASETS: DatasetItem[] = [
+  {
+    id: 'student_001',
+    name: 'Software Engineering & Java Trap',
+    targetDomain: 'Software Engineering',
+    badge: 'Official Competition Baseline',
+    description: "Infers student_001's underlying Software Engineering interest across Java memes, SWE lifestyle, and developer hardware reels, while filtering out AI hype traps.",
+    reels: [
+      { id: 'R001', title: 'Java Developers at 2 AM', topic: 'Java', category: 'Java', hashtags: ['java', 'humor'] },
+      { id: 'R002', title: 'Software Engineer Lifestyle', topic: 'Software Engineering', category: 'Career', hashtags: ['swe', 'wfh'] },
+      { id: 'R003', title: 'Coding Interview Joke', topic: 'Coding Interviews', category: 'DSA', hashtags: ['dsa', 'interview'] },
+      { id: 'R004', title: 'Laptop Comparison for Developers', topic: 'Developer Hardware', category: 'Hardware', hashtags: ['macbook', 'xps'] },
+      { id: 'R010', title: '10 AI Tools That Will Get You A Job', topic: 'AI Hype Trap', category: 'Career', hashtags: ['clickbait', 'hype'] },
+    ]
+  },
+  {
+    id: 'student_002',
+    name: 'Cloud Architecture & DevOps',
+    targetDomain: 'Cloud',
+    badge: 'Infrastructure Focus',
+    description: "Infers student_002's underlying Cloud interest across AWS ECS, Kubernetes containerization, Docker thermals, and cloud network deployment.",
+    reels: [
+      { id: 'R007', title: 'Cloud Computing AWS ECS & Fargate', topic: 'Cloud Architecture', category: 'Cloud', hashtags: ['aws', 'kubernetes'] },
+      { id: 'R004', title: 'Docker Container Compile Benchmarks', topic: 'Developer Hardware', category: 'Hardware', hashtags: ['docker', 'benchmarks'] },
+      { id: 'R001', title: 'Java Production Deployment Crash', topic: 'Java', category: 'Java', hashtags: ['production', 'devops'] },
+    ]
+  },
+  {
+    id: 'student_003',
+    name: 'AI Agents & Machine Learning',
+    targetDomain: 'AI',
+    badge: 'Generative AI Focus',
+    description: "Infers student_003's underlying AI interest across autonomous agent loops, vector embeddings, LLM tool calling, and RAG architectures.",
+    reels: [
+      { id: 'R006', title: 'AI Agents Architecture & Tool Calling', topic: 'AI Agents', category: 'AI', hashtags: ['llm', 'ai'] },
+      { id: 'R009', title: 'Two Pointer Pattern in DSA', topic: 'DSA Patterns', category: 'DSA', hashtags: ['algorithms', 'leetcode'] },
+      { id: 'R003', title: 'LeetCode Hard vs Real Life', topic: 'Coding Interviews', category: 'DSA', hashtags: ['dsa', 'interview'] },
+    ]
+  },
+  {
+    id: 'student_004',
+    name: 'Cybersecurity & Network Defense',
+    targetDomain: 'Cybersecurity',
+    badge: 'Security Focus',
+    description: "Infers student_004's underlying Cybersecurity interest across TLS 1.3 encryption, network packet handshakes, CTF challenges, and threat detection.",
+    reels: [
+      { id: 'R008', title: 'Technology News & TLS 1.3 Encryption', topic: 'Cybersecurity', category: 'Cybersecurity', hashtags: ['security', 'tls'] },
+      { id: 'R002', title: 'Software Engineer Lifestyle & Security Syncs', topic: 'Software Engineering', category: 'Career', hashtags: ['swe', 'security'] },
+      { id: 'R007', title: 'Cloud Security & Application Load Balancers', topic: 'Cloud', category: 'Cloud', hashtags: ['aws', 'security'] },
+    ]
+  }
+]
 
 interface InputModeSelectorProps {
-  onAnalyze: (mode: InputMode, urlOrId?: string, file?: File) => void
+  onAnalyze: (mode: InputMode, urlOrId?: string, file?: File, selectedStudentId?: string) => void
   onTryDemo: () => void
   isLoading: boolean
   errorMessage?: string | null
+  activeStudentId?: string
 }
 
 export function InputModeSelector({
@@ -20,11 +83,17 @@ export function InputModeSelector({
   onTryDemo,
   isLoading,
   errorMessage,
+  activeStudentId = 'student_001',
 }: InputModeSelectorProps) {
   const [activeTab, setActiveTab] = useState<InputMode>('dataset')
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>(activeStudentId)
+  const [showReelsPreview, setShowReelsPreview] = useState(false)
+
   const [urlInput, setUrlInput] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
+
+  const currentDataset = DATASETS.find(d => d.id === selectedDatasetId) || DATASETS[0]
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileError(null)
@@ -87,24 +156,96 @@ export function InputModeSelector({
           </TabsList>
 
           {/* 1. DATASET MODE */}
-          <TabsContent value="dataset" className="mt-4 space-y-3">
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                <Database className="size-4" />
-                Challenge Dataset (student_001)
+          <TabsContent value="dataset" className="mt-4 space-y-4">
+            {/* DATASET SELECTION PILLS */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Select Student Interaction Dataset:
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {DATASETS.map((ds) => {
+                  const isSelected = ds.id === selectedDatasetId
+                  return (
+                    <button
+                      key={ds.id}
+                      type="button"
+                      onClick={() => setSelectedDatasetId(ds.id)}
+                      className={`flex flex-col text-left p-3.5 rounded-xl border transition-all text-xs space-y-1 ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 ring-1 ring-primary shadow-sm'
+                          : 'border-border bg-muted/20 hover:border-primary/40 hover:bg-muted/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-foreground flex items-center gap-1.5">
+                          {isSelected && <CheckCircle2 className="size-3.5 text-primary shrink-0" />}
+                          {ds.name}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">
+                          {ds.id}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2">{ds.description}</p>
+                    </button>
+                  )
+                })}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Infers student_001&apos;s underlying Software Engineering interest across Java memes, SWE lifestyle, and developer hardware reels, while filtering out AI hype traps.
-              </p>
             </div>
+
+            {/* SELECTED DATASET DETAILS CARD */}
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Database className="size-4" />
+                  Active Dataset: {currentDataset.name} ({currentDataset.id})
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowReelsPreview(!showReelsPreview)}
+                  className="h-7 text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Eye className="size-3.5" />
+                  {showReelsPreview ? 'Hide Reels' : 'Inspect Reels'} ({currentDataset.reels.length})
+                  {showReelsPreview ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">{currentDataset.description}</p>
+
+              {/* INSPECT REELS PREVIEW PANEL */}
+              {showReelsPreview && (
+                <div className="mt-3 pt-3 border-t border-primary/20 space-y-2">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Reel Feed Items in this Dataset:
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {currentDataset.reels.map((reel) => (
+                      <div key={reel.id} className="rounded-lg border border-border/80 bg-background/80 p-2.5 space-y-1 text-xs">
+                        <div className="flex items-center justify-between font-medium">
+                          <span className="text-foreground truncate">{reel.title}</span>
+                          <span className="font-mono text-[10px] text-muted-foreground">{reel.id}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">{reel.topic}</span>
+                          <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{reel.category}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Button
               type="button"
-              onClick={() => onAnalyze('dataset')}
+              onClick={() => onAnalyze('dataset', undefined, undefined, selectedDatasetId)}
               disabled={isLoading}
-              className="w-full gap-2"
+              className="w-full gap-2 font-medium"
             >
               <Sparkles className="size-4" />
-              {isLoading ? 'Analyzing Feed...' : 'Analyze Feed (Dataset Mode)'}
+              {isLoading ? `Analyzing ${currentDataset.name}...` : `Analyze Feed (${currentDataset.name})`}
             </Button>
           </TabsContent>
 
@@ -138,7 +279,7 @@ export function InputModeSelector({
 
             <Button
               type="button"
-              onClick={() => selectedFile && onAnalyze('upload', undefined, selectedFile)}
+              onClick={() => selectedFile && onAnalyze('upload', undefined, selectedFile, selectedDatasetId)}
               disabled={isLoading || !selectedFile}
               className="w-full gap-2 focus-visible:ring-2 focus-visible:ring-primary"
             >
@@ -162,7 +303,7 @@ export function InputModeSelector({
             </div>
             <Button
               type="button"
-              onClick={() => urlInput.trim() && onAnalyze('url', urlInput.trim())}
+              onClick={() => urlInput.trim() && onAnalyze('url', urlInput.trim(), undefined, selectedDatasetId)}
               disabled={isLoading || !urlInput.trim()}
               className="w-full gap-2"
             >
