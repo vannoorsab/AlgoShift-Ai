@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     MONGODB_URI: str = Field(..., description="MongoDB Atlas connection URI")
     MONGODB_DB_NAME: str = "techscroll_ai"
     
-    # CORS
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    # CORS — allow localhost, vercel production, and wildcard by default for seamless API access
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000", "https://algo-shift-ai.vercel.app", "*"]
 
     @field_validator("MONGODB_URI")
     @classmethod
@@ -24,13 +24,16 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, str) and v.startswith("["):
-            return json.loads(v)
+        if isinstance(v, str):
+            if v.strip() == "*":
+                return ["*"]
+            if not v.startswith("["):
+                return [i.strip().rstrip('/') for i in v.split(",")]
+            elif v.startswith("["):
+                return [i.rstrip('/') for i in json.loads(v)]
         elif isinstance(v, list):
-            return v
-        return ["http://localhost:3000", "http://127.0.0.1:3000"]
+            return [str(i).rstrip('/') for i in v]
+        return ["http://localhost:3000", "http://127.0.0.1:3000", "https://algo-shift-ai.vercel.app", "*"]
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),

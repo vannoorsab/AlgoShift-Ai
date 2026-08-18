@@ -31,7 +31,7 @@ import {
   mockInterestInference,
 } from './mock-data'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://algoshift-backend.onrender.com'
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://algoshift-backend.onrender.com').replace(/\/+$/, '')
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'
 
 function delay<T>(data: T, ms = 500): Promise<T> {
