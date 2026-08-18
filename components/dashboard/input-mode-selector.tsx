@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { InputMode } from '@/lib/types'
-import { Sparkles, Upload, Link as LinkIcon, Database, AlertCircle, FileVideo, Eye, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Upload, Link as LinkIcon, Database, AlertCircle, FileVideo, Eye, ChevronDown, ChevronUp } from 'lucide-react'
 
 export interface DatasetItem {
   id: string
@@ -157,47 +157,34 @@ export function InputModeSelector({
 
           {/* 1. DATASET MODE */}
           <TabsContent value="dataset" className="mt-4 space-y-4">
-            {/* DATASET SELECTION PILLS */}
+            {/* DATASET DROPDOWN SELECTOR */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <label htmlFor="dataset-select" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
                 Select Student Interaction Dataset:
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {DATASETS.map((ds) => {
-                  const isSelected = ds.id === selectedDatasetId
-                  return (
-                    <button
-                      key={ds.id}
-                      type="button"
-                      onClick={() => setSelectedDatasetId(ds.id)}
-                      className={`flex flex-col text-left p-3.5 rounded-xl border transition-all text-xs space-y-1 ${
-                        isSelected
-                          ? 'border-primary bg-primary/10 ring-1 ring-primary shadow-sm'
-                          : 'border-border bg-muted/20 hover:border-primary/40 hover:bg-muted/40'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-foreground flex items-center gap-1.5">
-                          {isSelected && <CheckCircle2 className="size-3.5 text-primary shrink-0" />}
-                          {ds.name}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">
-                          {ds.id}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground line-clamp-2">{ds.description}</p>
-                    </button>
-                  )
-                })}
+              <div className="relative">
+                <select
+                  id="dataset-select"
+                  value={selectedDatasetId}
+                  onChange={(e) => setSelectedDatasetId(e.target.value)}
+                  className="w-full h-11 px-3.5 pr-10 rounded-xl border border-primary/40 bg-card text-foreground text-xs sm:text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all cursor-pointer appearance-none"
+                >
+                  {DATASETS.map((ds) => (
+                    <option key={ds.id} value={ds.id} className="bg-card text-foreground py-1">
+                      {ds.name} ({ds.id}) — {ds.badge}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-primary pointer-events-none" />
               </div>
             </div>
 
-            {/* SELECTED DATASET DETAILS CARD */}
+            {/* ACTIVE DATASET SUMMARY CARD */}
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                   <Database className="size-4" />
-                  Active Dataset: {currentDataset.name} ({currentDataset.id})
+                  {currentDataset.name} ({currentDataset.id})
                 </div>
                 <Button
                   type="button"
