@@ -25,9 +25,11 @@ class DatabaseException(TechScrollBaseException):
 
 class ValidationException(TechScrollBaseException):
     def __init__(self, message: str, details: dict = None):
+        # Use HTTP_422_UNPROCESSABLE_CONTENT directly to avoid Starlette deprecation warning
+        status_code_val = getattr(status, 'HTTP_422_UNPROCESSABLE_CONTENT', 422)
         super().__init__(
             message=message,
-            status_code=getattr(status, 'HTTP_422_UNPROCESSABLE_CONTENT', status.HTTP_422_UNPROCESSABLE_ENTITY),
+            status_code=status_code_val,
             details=details
         )
 
