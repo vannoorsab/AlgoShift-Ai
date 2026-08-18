@@ -6,7 +6,6 @@ import { HeroSection } from '@/components/dashboard/hero-section'
 import { InputModeSelector } from '@/components/dashboard/input-mode-selector'
 import { AgenticProgress } from '@/components/shared/agentic-progress'
 import { ChallengeOutputCard } from '@/components/shared/challenge-output-card'
-import { RecommendationCard } from '@/components/shared/recommendation-card'
 import { HypeShieldCard } from '@/components/shared/hype-shield-card'
 import { InterestProgress } from '@/components/shared/interest-progress'
 import { InterestInferenceCard } from '@/components/dashboard/interest-inference-card'
@@ -14,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { LoadingState } from '@/components/shared/states'
 import { api } from '@/lib/api-client'
 import type { AnalyzeResponse, InputMode, RejectedContent, Interest, InterestInference } from '@/lib/types'
-import { Compass } from 'lucide-react'
 
 export default function DashboardPage() {
   const [userId, setUserId] = useState('student_001')
@@ -111,24 +109,14 @@ export default function DashboardPage() {
         {/* AGENTIC PROGRESS UI */}
         <AgenticProgress isLoading={isLoading} />
 
-        {/* EXACT REQUIRED CHALLENGE OUTPUT */}
+        {/* SINGLE UNIFIED RECOMMENDATION OUTPUT */}
         {analyzeResponse?.result && (
-          <div className="space-y-6">
-            <ChallengeOutputCard result={analyzeResponse.result} />
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Compass className="size-5 text-primary" />
-                <h2 className="text-xl font-semibold text-foreground">Recommended Tech Reel</h2>
-              </div>
-              <RecommendationCard
-                analyzeResponse={analyzeResponse}
-                onDiscoverNext={handleDiscoverNext}
-                isNextLoading={isNextLoading}
-                featured
-              />
-            </div>
-          </div>
+          <ChallengeOutputCard
+            result={analyzeResponse.result}
+            evidence={analyzeResponse.evidence}
+            onDiscoverNext={handleDiscoverNext}
+            isNextLoading={isNextLoading}
+          />
         )}
 
         {/* HYPE SHIELD CARD */}
