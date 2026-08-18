@@ -102,7 +102,14 @@ class WorkflowOrchestratorService:
                     current_reel_id = norm.reelId
                 else:
                     norms = await self.ingestion_service.ingest_dataset()
-                    current_reel_id = request.reelId or "R003"
+                    if user_id == "student_002":
+                        current_reel_id = "R007"
+                    elif user_id == "student_003":
+                        current_reel_id = "R006"
+                    elif user_id == "student_004":
+                        current_reel_id = "R008"
+                    else:
+                        current_reel_id = request.reelId or "R003"
                 return current_reel_id
 
             await update_step("ingesting", "ReelIngestionLayer", step_ingest)

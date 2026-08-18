@@ -12,94 +12,33 @@ ALT_USER_ID = "me"
 STUDENT_USER_ID = "student_001"
 
 STUDENT_INTERACTIONS = [
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R001",
-        "watchPercentage": 95,
-        "liked": True,
-        "saved": False,
-        "shared": False,
-        "rewatched": True,
-        "action": "like",
-        "timestamp": "2026-08-11T10:00:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R002",
-        "watchPercentage": 100,
-        "liked": True,
-        "saved": True,
-        "shared": False,
-        "rewatched": False,
-        "action": "save",
-        "timestamp": "2026-08-12T11:15:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R003",
-        "watchPercentage": 92,
-        "liked": False,
-        "saved": False,
-        "shared": False,
-        "rewatched": True,
-        "action": "replay",
-        "timestamp": "2026-08-13T14:30:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R004",
-        "watchPercentage": 88,
-        "liked": True,
-        "saved": False,
-        "shared": False,
-        "rewatched": False,
-        "action": "like",
-        "timestamp": "2026-08-14T09:20:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R005",
-        "watchPercentage": 12,
-        "liked": False,
-        "saved": False,
-        "shared": False,
-        "rewatched": False,
-        "action": "skip",
-        "timestamp": "2026-08-15T16:45:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R006",
-        "watchPercentage": 42,
-        "liked": False,
-        "saved": False,
-        "shared": False,
-        "rewatched": False,
-        "action": "viewed",
-        "timestamp": "2026-08-16T18:10:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R007",
-        "watchPercentage": 25,
-        "liked": False,
-        "saved": False,
-        "shared": False,
-        "rewatched": False,
-        "action": "skip",
-        "timestamp": "2026-08-17T12:00:00Z"
-    },
-    {
-        "userId": STUDENT_USER_ID,
-        "reelId": "R008",
-        "watchPercentage": 65,
-        "liked": False,
-        "saved": False,
-        "shared": False,
-        "rewatched": False,
-        "action": "viewed",
-        "timestamp": "2026-08-18T08:30:00Z"
-    }
+    # student_001: Software Engineering & Java Trap
+    {"userId": "student_001", "reelId": "R001", "watchPercentage": 95, "liked": True, "saved": False, "shared": False, "rewatched": True, "action": "like", "timestamp": "2026-08-11T10:00:00Z"},
+    {"userId": "student_001", "reelId": "R002", "watchPercentage": 100, "liked": True, "saved": True, "shared": False, "rewatched": False, "action": "save", "timestamp": "2026-08-12T11:15:00Z"},
+    {"userId": "student_001", "reelId": "R003", "watchPercentage": 92, "liked": False, "saved": False, "shared": False, "rewatched": True, "action": "replay", "timestamp": "2026-08-13T14:30:00Z"},
+    {"userId": "student_001", "reelId": "R004", "watchPercentage": 88, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-14T09:20:00Z"},
+    {"userId": "student_001", "reelId": "R005", "watchPercentage": 12, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "skip", "timestamp": "2026-08-15T16:45:00Z"},
+    {"userId": "student_001", "reelId": "R006", "watchPercentage": 42, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "viewed", "timestamp": "2026-08-16T18:10:00Z"},
+    {"userId": "student_001", "reelId": "R007", "watchPercentage": 25, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "skip", "timestamp": "2026-08-17T12:00:00Z"},
+    {"userId": "student_001", "reelId": "R008", "watchPercentage": 65, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "viewed", "timestamp": "2026-08-18T08:30:00Z"},
+
+    # student_002: Cloud Architecture & DevOps
+    {"userId": "student_002", "reelId": "R007", "watchPercentage": 98, "liked": True, "saved": True, "shared": True, "rewatched": True, "action": "like", "timestamp": "2026-08-14T10:00:00Z"},
+    {"userId": "student_002", "reelId": "R004", "watchPercentage": 92, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-15T11:15:00Z"},
+    {"userId": "student_002", "reelId": "R001", "watchPercentage": 85, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-16T14:30:00Z"},
+    {"userId": "student_002", "reelId": "R005", "watchPercentage": 10, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "skip", "timestamp": "2026-08-17T09:20:00Z"},
+
+    # student_003: AI Agents & Machine Learning
+    {"userId": "student_003", "reelId": "R006", "watchPercentage": 100, "liked": True, "saved": True, "shared": True, "rewatched": True, "action": "like", "timestamp": "2026-08-14T10:00:00Z"},
+    {"userId": "student_003", "reelId": "R009", "watchPercentage": 88, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-15T11:15:00Z"},
+    {"userId": "student_003", "reelId": "R003", "watchPercentage": 80, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-16T14:30:00Z"},
+    {"userId": "student_003", "reelId": "R005", "watchPercentage": 15, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "skip", "timestamp": "2026-08-17T09:20:00Z"},
+
+    # student_004: Cybersecurity & Network Defense
+    {"userId": "student_004", "reelId": "R008", "watchPercentage": 96, "liked": True, "saved": True, "shared": True, "rewatched": True, "action": "like", "timestamp": "2026-08-14T10:00:00Z"},
+    {"userId": "student_004", "reelId": "R002", "watchPercentage": 85, "liked": True, "saved": False, "shared": False, "rewatched": False, "action": "like", "timestamp": "2026-08-15T11:15:00Z"},
+    {"userId": "student_004", "reelId": "R007", "watchPercentage": 90, "liked": True, "saved": True, "shared": False, "rewatched": False, "action": "save", "timestamp": "2026-08-16T14:30:00Z"},
+    {"userId": "student_004", "reelId": "R005", "watchPercentage": 0, "liked": False, "saved": False, "shared": False, "rewatched": False, "action": "skip", "timestamp": "2026-08-17T09:20:00Z"},
 ]
 
 INITIAL_INTERESTS = [
@@ -206,12 +145,12 @@ async def seed_initial_data():
         db = get_database()
         
         # Seed users
-        for uid in [MOCK_USER_ID, ALT_USER_ID, STUDENT_USER_ID]:
+        for uid in [MOCK_USER_ID, ALT_USER_ID, "student_001", "student_002", "student_003", "student_004"]:
             existing_user = await db[COLLECTION_USERS].find_one({"id": uid})
             if not existing_user:
                 await db[COLLECTION_USERS].insert_one({
                     "id": uid,
-                    "name": "Demo Student" if uid != STUDENT_USER_ID else "Student 001",
+                    "name": f"Student {uid.replace('student_', '')}",
                     "email": f"{uid}@demo.com",
                     "settings": {
                         "preferredDifficulty": "Intermediate",
@@ -224,7 +163,7 @@ async def seed_initial_data():
                     }
                 })
 
-        # Seed student_001 interactions
+        # Seed student interactions for all 4 students
         for interaction in STUDENT_INTERACTIONS:
             existing = await db[COLLECTION_INTERACTIONS].find_one({
                 "userId": interaction["userId"],
@@ -239,6 +178,6 @@ async def seed_initial_data():
             if not existing:
                 await db[COLLECTION_RECOMMENDATION_CATALOG].insert_one(item)
 
-        logger.info("MongoDB seed check complete for users, student_001 interactions, and catalog.")
+        logger.info("MongoDB seed check complete for users student_001 to student_004, interactions, and catalog.")
     except Exception as e:
         logger.warning(f"Seed data insertion warning: {e}")
