@@ -1,0 +1,3 @@
+from app.services.ingestion.adapters.transcription_adapter import TranscriptionAdapter, MockWhisperTranscriptionAdapter
+from app.services.ingestion.adapters.ocr_adapter import OCRAdapter, MockTesseractOCRAdapter
+from app.services.ingestion.adapters.vision_adapter import VisualAnalysisAdapter, MockVisionAdapter

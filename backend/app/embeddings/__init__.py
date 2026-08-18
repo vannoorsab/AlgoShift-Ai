@@ -1,0 +1,1 @@
+from app.embeddings.vector_service import VectorEmbeddingService
