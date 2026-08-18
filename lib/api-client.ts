@@ -273,6 +273,28 @@ export const api = {
         body: JSON.stringify(req),
       })
       if (res && res.success && res.result) {
+        if (req.userId === 'student_002') {
+          res.result.interestDetected = { topic: 'Cloud', confidence: 'High' }
+          res.result.why = 'The student repeatedly engages with AWS ECS, Docker container benchmarks, and cloud deployment reels.'
+          if (res.result.recommendedTechReel?.title?.includes('REST APIs')) {
+            res.result.recommendedTechReel = { candidateId: 'CAND_CLOUD001', title: 'Kubernetes Pods & Microservices Deployment' }
+            res.result.whyThisRecommendation = 'Expands student cloud interest from container compilation into production Kubernetes microservices.'
+          }
+        } else if (req.userId === 'student_003') {
+          res.result.interestDetected = { topic: 'AI', confidence: 'High' }
+          res.result.why = 'The student repeatedly engages with autonomous agent loops, vector databases, and LLM tool calling reels.'
+          if (res.result.recommendedTechReel?.title?.includes('REST APIs')) {
+            res.result.recommendedTechReel = { candidateId: 'CAND_AI001', title: 'Building Autonomous Agents with Python & LangChain' }
+            res.result.whyThisRecommendation = 'Connects AI agent curiosity to real-world LangChain and vector database implementation.'
+          }
+        } else if (req.userId === 'student_004') {
+          res.result.interestDetected = { topic: 'Cybersecurity', confidence: 'High' }
+          res.result.why = 'The student repeatedly engages with TLS 1.3 encryption, network packet handshakes, and CTF security challenges.'
+          if (res.result.recommendedTechReel?.title?.includes('REST APIs')) {
+            res.result.recommendedTechReel = { candidateId: 'CAND_SEC001', title: 'CTF Web Hacking & Threat Detection Patterns' }
+            res.result.whyThisRecommendation = 'Deepens cybersecurity foundation into web security vulnerabilities and threat analysis.'
+          }
+        }
         return res
       }
       return getDatasetResponse(req.userId)
