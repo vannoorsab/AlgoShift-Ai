@@ -7,6 +7,7 @@ from app.models.workflow import (
     AnalyzeRequest, AnalyzeResponse, AnalyzeNextRequest, WorkflowStepStatus, WorkflowError
 )
 from app.models.explanation import ExplainRecommendationResponse
+from app.core.errors import ValidationException, EntityNotFoundException, DatabaseException
 from app.services.ingestion.service import ReelIngestionService
 from app.services.recommendation_service import RecommendationService
 from app.agents.reel_understanding import ReelUnderstandingAgent
@@ -17,7 +18,7 @@ from app.core.logging import logger
 class WorkflowOrchestratorService:
     """
     Central Workflow Orchestrator connecting Agents 1–6 into a reliable,
-    end-to-end recommendation pipeline.
+    end-to-end recommendation pipeline with explicit domain error handling.
     """
 
     def __init__(self):
@@ -68,10 +69,18 @@ class WorkflowOrchestratorService:
                     step_duration = int((time.time() - step_start) * 1000)
                     steps.append(WorkflowStepStatus(agent=agent_name, status="completed", durationMs=step_duration))
                     return res
+                except ValidationException as val_err:
+                    step_duration = int((time.time() - step_start) * 1000)
+                    steps.append(WorkflowStepStatus(agent=agent_name, status="failed", durationMs=step_duration, error=val_err.message))
+                    raise val_err
+                except (EntityNotFoundException, DatabaseException) as domain_err:
+                    step_duration = int((time.time() - step_start) * 1000)
+                    steps.append(WorkflowStepStatus(agent=agent_name, status="failed", durationMs=step_duration, error=domain_err.message))
+                    raise domain_err
                 except Exception as e:
                     attempts += 1
                     e_type = type(e).__name__
-                    if attempts > retry_count or "ValidationException" in e_type or "REEL_ACCESS_ERROR" in str(e):
+                    if attempts > retry_count or "REEL_ACCESS_ERROR" in str(e):
                         step_duration = int((time.time() - step_start) * 1000)
                         steps.append(WorkflowStepStatus(agent=agent_name, status="failed", durationMs=step_duration, error=str(e)))
                         raise e
@@ -119,7 +128,7 @@ class WorkflowOrchestratorService:
 
             gen_res = await update_step("generating_candidates", "CandidateGenerationAgent", step_agent3)
 
-            # 5. AGENT 4 STEP — Quality / Hype Shield
+            # 5. AGENT 4 STEP — Quality / Hype Shield (Typed model data flow)
             candidates_dict = [c.model_dump() for c in gen_res.candidates]
             
             async def step_agent4():
@@ -180,11 +189,46 @@ class WorkflowOrchestratorService:
                 workflow=workflow_summary
             )
 
+        except ValidationException as val_exc:
+            logger.warning(f"WorkflowOrchestrator pipeline validation error at '{current_status}': {val_exc.message}")
+            completion_time = datetime.datetime.utcnow().isoformat() + "Z"
+            await db_manager.db[COLLECTION_WORKFLOW_RUNS].update_one(
+                {"runId": run_id},
+                {
+                    "$set": {
+                        "status": "failed",
+                        "failedStep": current_status,
+                        "steps": [s.model_dump() for s in steps],
+                        "completedAt": completion_time
+                    }
+                }
+            )
+            return AnalyzeResponse(
+                success=False,
+                runId=run_id,
+                workflow={"status": "failed", "failedStep": current_status},
+                error=WorkflowError(step=current_status, code="REEL_ACCESS_ERROR", message=val_exc.message)
+            )
+
+        except (EntityNotFoundException, DatabaseException) as domain_exc:
+            logger.error(f"WorkflowOrchestrator domain error at '{current_status}': {domain_exc.message}")
+            completion_time = datetime.datetime.utcnow().isoformat() + "Z"
+            await db_manager.db[COLLECTION_WORKFLOW_RUNS].update_one(
+                {"runId": run_id},
+                {"$set": {"status": "failed", "failedStep": current_status, "steps": [s.model_dump() for s in steps], "completedAt": completion_time}}
+            )
+            return AnalyzeResponse(
+                success=False,
+                runId=run_id,
+                workflow={"status": "failed", "failedStep": current_status},
+                error=WorkflowError(step=current_status, code="DOMAIN_ERROR", message=domain_exc.message)
+            )
+
         except Exception as e:
             logger.error(f"WorkflowOrchestrator pipeline failed at step '{current_status}': {e}")
             error_msg = str(e)
             error_code = "PIPELINE_ERROR"
-            if "URL" in error_msg or "retrieve Reel" in error_msg or "ValidationException" in type(e).__name__:
+            if "URL" in error_msg or "retrieve Reel" in error_msg:
                 error_code = "REEL_ACCESS_ERROR"
 
             completion_time = datetime.datetime.utcnow().isoformat() + "Z"

@@ -180,7 +180,8 @@ class InterestInferenceAgent:
                     evidence=ev_list
                 )
 
-                if norm_score >= 0.85 and not is_single_passive:
+                # Require N >= 2 meaningful interactions before promoting to PrimaryInterest (P1 Task 9)
+                if norm_score >= 0.85 and not is_single_passive and count >= 2:
                     primary_interests.append(item)
                 elif norm_score >= 0.65 and not is_single_passive:
                     secondary_interests.append(item)

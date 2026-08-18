@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 
 export function LoadingState({ rows = 3, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn('grid gap-4', className)}>
+    <div className={cn('grid gap-4', className)} aria-busy="true" aria-label="Loading recommendation output...">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="rounded-2xl border border-border bg-card p-5">
           <Skeleton className="mb-3 h-5 w-1/3" />

@@ -114,11 +114,13 @@ export function InputModeSelector({
               <FileVideo className="size-8 text-muted-foreground mb-2" />
               <p className="text-sm font-medium text-foreground">Select .mp4 or .mov video file</p>
               <p className="text-xs text-muted-foreground mt-1">Maximum file size: 50MB</p>
+              <label htmlFor="file-upload-input" className="sr-only">Upload Video File</label>
               <Input
+                id="file-upload-input"
                 type="file"
                 accept=".mp4,.mov"
                 onChange={handleFileChange}
-                className="mt-3 max-w-xs cursor-pointer text-xs"
+                className="mt-3 max-w-xs cursor-pointer text-xs focus-visible:ring-2 focus-visible:ring-primary"
               />
               {selectedFile && (
                 <p className="mt-2 text-xs font-medium text-primary">
@@ -138,7 +140,7 @@ export function InputModeSelector({
               type="button"
               onClick={() => selectedFile && onAnalyze('upload', undefined, selectedFile)}
               disabled={isLoading || !selectedFile}
-              className="w-full gap-2"
+              className="w-full gap-2 focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Upload className="size-4" />
               {isLoading ? 'Uploading & Analyzing...' : 'Upload & Analyze Video'}
@@ -149,11 +151,13 @@ export function InputModeSelector({
           <TabsContent value="url" className="mt-4 space-y-3">
             <div className="relative">
               <LinkIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <label htmlFor="reel-url-input" className="sr-only">Reel URL</label>
               <Input
+                id="reel-url-input"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 placeholder="https://instagram.com/reel/..."
-                className="pl-9 text-xs sm:text-sm"
+                className="pl-9 text-xs sm:text-sm focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
             <Button

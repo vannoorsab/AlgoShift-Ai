@@ -7,7 +7,7 @@ export type Confidence = 'Low' | 'Medium' | 'High'
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 export type InterestTrend = 'primary' | 'growing' | 'stable' | 'emerging' | 'declining'
 
-export type Category =
+export type ChallengeCategory =
   | 'AI'
   | 'DSA'
   | 'Java'
@@ -16,9 +16,9 @@ export type Category =
   | 'Cloud'
   | 'Hardware'
   | 'Career'
-  | 'Backend'
-  | 'Programming'
   | 'Other'
+
+export type Category = ChallengeCategory | 'Backend' | 'Programming'
 
 export type InputMode = 'dataset' | 'upload' | 'url'
 

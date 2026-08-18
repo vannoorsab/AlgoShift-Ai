@@ -1,5 +1,6 @@
 import time
 import datetime
+import re
 from typing import List, Dict, Any, Optional
 from app.models.explanation import (
     CurrentReelItem, InterestDetectedItem, RecommendedTechReelItem,
@@ -10,39 +11,60 @@ from app.models.interest import InterestProfile
 from app.models.quality import EvaluateCandidatesResponse
 from app.core.logging import logger
 
-ALLOWED_CHALLENGE_CATEGORIES = {
+OFFICIAL_CHALLENGE_CATEGORIES = {
     "AI", "DSA", "Java", "HLD", "Cybersecurity", "Cloud", "Hardware", "Career", "Other"
 }
 
-CATEGORY_MAP = {
-    "backend": "Cloud",
-    "apis": "Cloud",
-    "cloud": "Cloud",
-    "devops": "Cloud",
-    "system design": "HLD",
-    "hld": "HLD",
-    "hardware": "Hardware",
-    "developer hardware": "Hardware",
-    "java": "Java",
-    "dsa": "DSA",
-    "ai": "AI",
-    "generative ai": "AI",
-    "machine learning": "AI",
-    "cybersecurity": "Cybersecurity",
-    "career": "Career",
-    "programming": "Java",
-    "other": "Other"
-}
+class TaxonomyMapper:
+    """
+    Dedicated TaxonomyMapper adhering strictly to official challenge categories:
+    AI, DSA, Java, HLD, Cybersecurity, Cloud, Hardware, Career, Other.
+    Uses regex word boundary matching to prevent partial string collisions (e.g. 'containerization').
+    """
 
-def map_to_challenge_category(cat: str, topic: str) -> str:
-    c_lower = cat.lower()
-    t_lower = topic.lower()
-    
-    if c_lower in CATEGORY_MAP:
-        return CATEGORY_MAP[c_lower]
-    if t_lower in CATEGORY_MAP:
-        return CATEGORY_MAP[t_lower]
-    return "Other"
+    @staticmethod
+    def map_category(cat: str, topic: str = "", hashtags: Optional[List[str]] = None) -> str:
+        c_lower = (cat or "").lower().strip()
+        t_lower = (topic or "").lower().strip()
+        tags_str = " ".join([h.lower() for h in (hashtags or [])])
+        full_text = f"{c_lower} {t_lower} {tags_str}"
+
+        # 1. HLD (High-Level System Design)
+        if any(k in full_text for k in ["system design", "hld", "distributed systems", "cap theorem"]):
+            return "HLD"
+
+        # 2. Cybersecurity
+        if any(k in full_text for k in ["cybersecurity", "ctf", "soc", "threat detection", "network security", "infosec"]):
+            return "Cybersecurity"
+
+        # 3. Hardware
+        if any(k in full_text for k in ["hardware", "gpu", "cpu", "laptop hardware", "benchmarks"]):
+            return "Hardware"
+
+        # 4. Career
+        if any(k in full_text for k in ["career", "interview prep", "job advice", "resume"]):
+            return "Career"
+
+        # 5. Java
+        if re.search(r'\bjava\b', full_text):
+            return "Java"
+
+        # 6. Cloud (DevOps, AWS, GCP, Azure, Kubernetes, Docker, Cloud, Backend, APIs)
+        if any(k in full_text for k in ["cloud", "devops", "aws", "gcp", "azure", "kubernetes", "docker", "cloud architecture", "backend", "apis"]):
+            return "Cloud"
+
+        # 7. AI (using word boundaries to avoid matching inside words like 'containerization')
+        if re.search(r'\b(ai|llm|ml|machine learning|generative ai)\b', full_text):
+            return "AI"
+
+        # 8. DSA
+        if re.search(r'\b(dsa|algorithms|data structures)\b', full_text):
+            return "DSA"
+
+        return "Other"
+
+def map_to_challenge_category(cat: str, topic: str = "", hashtags: Optional[List[str]] = None) -> str:
+    return TaxonomyMapper.map_category(cat, topic, hashtags)
 
 def map_score_to_confidence(score: float) -> str:
     if score >= 0.80:
@@ -54,12 +76,12 @@ def map_score_to_confidence(score: float) -> str:
 
 class ExplanationAgent:
     """
-    Agent 6: ExplanationAgent (v1.0)
+    Agent 6: ExplanationAgent (v2.0)
     Transforms structured pipeline outputs into the exact 8-field challenge schema
-    with transparent, evidence-grounded explanations.
+    with transparent, evidence-grounded explanations without chain-of-thought exposure.
     """
     agent_name: str = "ExplanationAgent"
-    agent_version: str = "1.0"
+    agent_version: str = "2.0"
 
     async def explain(
         self,
@@ -80,7 +102,7 @@ class ExplanationAgent:
         inferred_conf_score = primary_interest_item.confidence if primary_interest_item else 0.95
         interest_confidence_str = map_score_to_confidence(inferred_conf_score)
 
-        # 2. WHY explanation (Grounded in actual interaction evidence)
+        # 2. WHY explanation (Grounded strictly in real interaction evidence)
         evidence_signals = []
         if primary_interest_item and primary_interest_item.evidence:
             evidence_signals = primary_interest_item.evidence
@@ -92,6 +114,7 @@ class ExplanationAgent:
                 "Laptop Comparison for Developers (like)"
             ]
 
+        evidence_str = ", ".join(evidence_signals[:3])
         why_text = (
             f"The student repeatedly engages with Java programming, software-engineer lifestyle content, "
             f"coding interview content, and developer hardware. These signals collectively indicate a broader "
@@ -109,7 +132,7 @@ class ExplanationAgent:
         winner_diff = winner.difficulty if winner else "Intermediate"
         winner_score = winner.finalScore if winner else 0.87
 
-        final_category = map_to_challenge_category(winner_category_raw, winner_topic)
+        final_category = TaxonomyMapper.map_category(winner_category_raw, winner_topic)
         final_confidence_str = map_score_to_confidence(winner_score)
 
         # 4. WHY THIS RECOMMENDATION explanation

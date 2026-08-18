@@ -1,4 +1,6 @@
+import math
 from typing import List, Dict, Any, Tuple, Optional
+from dataclasses import dataclass
 from app.models.ranking import (
     RankingScoreBreakdown, RankedCandidateItem, SelectedRecommendation, RankRecommendationResponse
 )
@@ -6,12 +8,58 @@ from app.models.quality import QualityAssessment, QualityDecision
 from app.models.interest import InterestProfile
 from app.core.logging import logger
 
+@dataclass(frozen=True)
+class RankingWeightsConfig:
+    """
+    Configurable, validated weights for deterministic candidate ranking.
+    Sum of weights equals 1.0 (100%).
+    """
+    interest_match: float = 0.25
+    educational_value: float = 0.20
+    practical_usefulness: float = 0.15
+    novelty: float = 0.10
+    interest_expansion: float = 0.10
+    difficulty_fit: float = 0.05
+    career_relevance: float = 0.05
+    diversity: float = 0.05
+    quality: float = 0.05
+
+    def validate(self) -> bool:
+        total = (
+            self.interest_match + self.educational_value + self.practical_usefulness +
+            self.novelty + self.interest_expansion + self.difficulty_fit +
+            self.career_relevance + self.diversity + self.quality
+        )
+        return abs(total - 1.0) < 1e-4
+
+DEFAULT_WEIGHTS_CONFIG = RankingWeightsConfig()
+
+def calculate_exponential_repetition_penalty(n_seen: int, base_penalty: float = 0.20, decay_lambda: float = 0.4) -> float:
+    """
+    Mathematically valid exponential decay penalty for repeated content interactions:
+    penalty = base_penalty * (1.0 - math.exp(-decay_lambda * n_seen))
+    For n_seen = 0 -> 0.0
+    For n_seen = 1 -> ~0.07
+    For n_seen = 2 -> ~0.11
+    For n_seen >= 5 -> ~0.17
+    """
+    if n_seen <= 0:
+        return 0.0
+    val = base_penalty * (1.0 - math.exp(-decay_lambda * n_seen))
+    return round(val, 2)
+
 class RecommendationRankingEngine:
     """
     Deterministic ranking engine for AlgoShift AI.
-    Calculates 9 feature scores, applies Quality Gate and penalties,
+    Calculates 9 feature scores using RankingWeightsConfig, applies Quality Gate and exponential penalties,
     ranks candidates deterministically in Python, and selects the winner.
     """
+
+    def __init__(self, weights_config: Optional[RankingWeightsConfig] = None):
+        self.weights = weights_config or DEFAULT_WEIGHTS_CONFIG
+        if not self.weights.validate():
+            logger.warning("RankingWeightsConfig sum does not equal 1.0; using default configuration.")
+            self.weights = DEFAULT_WEIGHTS_CONFIG
 
     def calculate_candidate_rank(
         self,
@@ -36,7 +84,7 @@ class RecommendationRankingEngine:
         cand_id = str(candidate.get("candidateId") or candidate.get("contentId") or "CAND_000")
 
         # 1. Feature Calculations
-        # A. Interest Match (25%)
+        # A. Interest Match
         primary_topics = [p.topic.lower() for p in interest_profile.primaryInterests]
         secondary_topics = [s.topic.lower() for s in interest_profile.secondaryInterests]
         
@@ -47,17 +95,17 @@ class RecommendationRankingEngine:
         else:
             interest_match = 0.70
 
-        # B. Educational Value (20%) & C. Practical Usefulness (15%)
+        # B. Educational Value & C. Practical Usefulness
         educational_val = quality_eval.educationalValue
         practical_val = quality_eval.practicalUsefulness
 
-        # D. Novelty (10%)
+        # D. Novelty
         if topic.lower() in [t.lower() for t in recently_consumed_topics]:
             novelty_val = 0.35
         else:
             novelty_val = float(candidate.get("novelty", 0.82))
 
-        # E. Interest Expansion (10%) - Frontier advantage
+        # E. Interest Expansion - Frontier advantage
         frontier_topics = [f.topic.lower() for f in interest_profile.interestFrontier]
         if topic.lower() in frontier_topics or category.lower() in frontier_topics or cand_type == "Adjacent":
             interest_expansion = 0.92
@@ -66,7 +114,7 @@ class RecommendationRankingEngine:
         else:  # Familiar
             interest_expansion = 0.45
 
-        # F. Difficulty Fit (5%)
+        # F. Difficulty Fit
         if item_difficulty == user_difficulty:
             diff_fit = 0.95
         elif (user_difficulty == "Beginner" and item_difficulty == "Advanced"):
@@ -74,7 +122,7 @@ class RecommendationRankingEngine:
         else:
             diff_fit = 0.75
 
-        # G. Career Relevance (5%) & H. Diversity (5%) & Quality (5%)
+        # G. Career Relevance & H. Diversity & Quality
         career_rel = quality_eval.careerRelevance
         
         # Diversity: penalize repeated Java candidates if Java recently dominated
@@ -91,20 +139,23 @@ class RecommendationRankingEngine:
         clickbait_pen = round(quality_eval.clickbaitScore * 0.10, 2)
         misleading_pen = round(quality_eval.misleadingClaimRisk * 0.20, 2)
 
-        duplicate_pen = 0.15 if (topic.lower() == "java" and java_repetition >= 2) else 0.0
+        n_seen = sum(1 for t in recently_consumed_topics if t.lower() == topic.lower())
+        exp_repetition_pen = calculate_exponential_repetition_penalty(n_seen)
+        duplicate_pen = 0.15 if (topic.lower() == "java" and java_repetition >= 2) else exp_repetition_pen
         rejection_pen = 0.20 if cand_id in rejected_candidate_ids or quality_eval.decision == QualityDecision.REJECT else 0.0
 
-        # 3. Final Deterministic Score Calculation
+        # 3. Final Deterministic Score Calculation using RankingWeightsConfig
+        w = self.weights
         raw_final = (
-            interest_match * 0.25 +
-            educational_val * 0.20 +
-            practical_val * 0.15 +
-            novelty_val * 0.10 +
-            interest_expansion * 0.10 +
-            diff_fit * 0.05 +
-            career_rel * 0.05 +
-            diversity_val * 0.05 +
-            quality_val * 0.05
+            interest_match * w.interest_match +
+            educational_val * w.educational_value +
+            practical_val * w.practical_usefulness +
+            novelty_val * w.novelty +
+            interest_expansion * w.interest_expansion +
+            diff_fit * w.difficulty_fit +
+            career_rel * w.career_relevance +
+            diversity_val * w.diversity +
+            quality_val * w.quality
         ) - (hype_pen + clickbait_pen + misleading_pen + duplicate_pen + rejection_pen)
 
         final_score = round(max(0.0, min(1.0, raw_final)), 2)

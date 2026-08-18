@@ -27,7 +27,7 @@ export function ChallengeOutputCard({ result }: ChallengeOutputCardProps) {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-6 space-y-6" aria-live="polite" aria-atomic="true">
         <div className="grid gap-4 md:grid-cols-2">
           {/* 1. CURRENT REEL */}
           <div className="space-y-1.5 rounded-xl border border-border p-4 bg-muted/20">
