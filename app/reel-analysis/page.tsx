@@ -5,7 +5,6 @@ import { PageHeader } from '@/components/shared/page-header'
 import { InputModeSelector } from '@/components/dashboard/input-mode-selector'
 import { AgenticProgress } from '@/components/shared/agentic-progress'
 import { ChallengeOutputCard } from '@/components/shared/challenge-output-card'
-import { RecommendationCard } from '@/components/shared/recommendation-card'
 import { api } from '@/lib/api-client'
 import type { AnalyzeResponse, InputMode } from '@/lib/types'
 
@@ -56,8 +55,7 @@ export default function ReelAnalysisPage() {
 
         {resultResponse?.result && (
           <div className="space-y-6 pt-4">
-            <ChallengeOutputCard result={resultResponse.result} />
-            <RecommendationCard analyzeResponse={resultResponse} />
+            <ChallengeOutputCard result={resultResponse.result} evidence={resultResponse.evidence} />
           </div>
         )}
       </div>

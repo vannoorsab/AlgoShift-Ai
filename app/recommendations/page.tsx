@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { ChallengeOutputCard } from '@/components/shared/challenge-output-card'
-import { RecommendationCard } from '@/components/shared/recommendation-card'
 import { HypeShieldCard } from '@/components/shared/hype-shield-card'
 import { LoadingState } from '@/components/shared/states'
 import { api } from '@/lib/api-client'
 import type { AnalyzeResponse, RejectedContent } from '@/lib/types'
-import { Compass } from 'lucide-react'
 
 export default function RecommendationsPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -60,21 +58,12 @@ export default function RecommendationsPage() {
         ) : (
           analyzeResponse?.result && (
             <div className="space-y-6">
-              <ChallengeOutputCard result={analyzeResponse.result} />
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Compass className="size-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">Selected Tech Reel Winner</h2>
-                </div>
-                <RecommendationCard
-                  analyzeResponse={analyzeResponse}
-                  onDiscoverNext={handleDiscoverNext}
-                  isNextLoading={isNextLoading}
-                  featured
-                />
-              </div>
-
+              <ChallengeOutputCard
+                result={analyzeResponse.result}
+                evidence={analyzeResponse.evidence}
+                onDiscoverNext={handleDiscoverNext}
+                isNextLoading={isNextLoading}
+              />
               <HypeShieldCard rejectedItems={rejectedList} />
             </div>
           )

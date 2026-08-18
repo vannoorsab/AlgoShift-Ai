@@ -42,6 +42,59 @@ function delay<T>(data: T, ms = 500): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(data), ms))
 }
 
+function getMockInterests(userId: string = 'student_001'): Interest[] {
+  if (userId === 'student_002') {
+    return [
+      { id: 'c1', name: 'Cloud Architecture', score: 95, confidence: 'High', trend: 'primary', relatedTopics: ['AWS ECS', 'Kubernetes', 'Docker', 'DevOps'], recentActivity: ['Watched AWS Cloud reel', 'Saved Kubernetes deployment tutorial'] },
+      { id: 'c2', name: 'DevOps & CI/CD', score: 89, confidence: 'High', trend: 'stable', relatedTopics: ['Terraform', 'GitHub Actions', 'Docker'], recentActivity: ['Watched Docker thermals reel'] },
+      { id: 'c3', name: 'Microservices', score: 84, confidence: 'Medium', trend: 'growing', relatedTopics: ['API Gateways', 'Service Mesh'], recentActivity: ['Watched CloudFront distribution reel'] },
+      { id: 'c4', name: 'Software Engineering', score: 65, confidence: 'Medium', trend: 'stable', relatedTopics: ['Java', 'APIs'], recentActivity: ['Watched Java crash reel'] },
+    ]
+  }
+  if (userId === 'student_003') {
+    return [
+      { id: 'a1', name: 'AI & Autonomous Agents', score: 96, confidence: 'High', trend: 'primary', relatedTopics: ['LLM Tools', 'LangChain', 'Vector DBs', 'RAG'], recentActivity: ['Watched AI Agents reel', 'Liked LangChain tutorial'] },
+      { id: 'a2', name: 'Machine Learning', score: 91, confidence: 'High', trend: 'stable', relatedTopics: ['PyTorch', 'Transformers', 'Embeddings'], recentActivity: ['Watched Vector Embeddings reel'] },
+      { id: 'a3', name: 'DSA Patterns', score: 80, confidence: 'Medium', trend: 'growing', relatedTopics: ['Two Pointers', 'Graphs'], recentActivity: ['Watched DSA two pointers reel'] },
+      { id: 'a4', name: 'Software Engineering', score: 72, confidence: 'Medium', trend: 'stable', relatedTopics: ['Python', 'APIs'], recentActivity: ['Watched interview joke reel'] },
+    ]
+  }
+  if (userId === 'student_004') {
+    return [
+      { id: 's1', name: 'Cybersecurity', score: 94, confidence: 'High', trend: 'primary', relatedTopics: ['TLS 1.3', 'CTF', 'Threat Detection', 'SOC'], recentActivity: ['Watched TLS 1.3 Encryption reel', 'Saved CTF security walkthrough'] },
+      { id: 's2', name: 'Network Security', score: 88, confidence: 'High', trend: 'stable', relatedTopics: ['Packet Analysis', 'Firewalls', 'Wireshark'], recentActivity: ['Watched packet handshake reel'] },
+      { id: 's3', name: 'Cloud Security', score: 76, confidence: 'Medium', trend: 'growing', relatedTopics: ['IAM', 'AWS ALB', 'WAF'], recentActivity: ['Watched Cloud Security ALB reel'] },
+      { id: 's4', name: 'Software Engineering', score: 68, confidence: 'Medium', trend: 'stable', relatedTopics: ['Python', 'System Architecture'], recentActivity: ['Watched SWE sync reel'] },
+    ]
+  }
+  return mockInterests
+}
+
+function getMockInference(userId: string = 'student_001'): InterestInference {
+  if (userId === 'student_002') {
+    return {
+      primaryInterest: 'Cloud Architecture',
+      supportingSignals: ['AWS ECS & Fargate', 'Docker Container Benchmarks', 'Cloud Deployments'],
+      note: 'AI inferred a broader Cloud & DevOps interest across containerization and cloud infrastructure signals.',
+    }
+  }
+  if (userId === 'student_003') {
+    return {
+      primaryInterest: 'AI & Autonomous Agents',
+      supportingSignals: ['AI Agents Architecture', 'Vector DB Embeddings', 'LLM Tool Calling'],
+      note: 'AI inferred an AI Agents & Generative Systems interest across autonomous workflow and model signals.',
+    }
+  }
+  if (userId === 'student_004') {
+    return {
+      primaryInterest: 'Cybersecurity & Network Defense',
+      supportingSignals: ['TLS 1.3 Encryption', 'Network Packet Handshakes', 'CTF Security Challenges'],
+      note: 'AI inferred a Cybersecurity interest across encryption protocols and threat detection signals.',
+    }
+  }
+  return mockInterestInference
+}
+
 function getDatasetResponse(userId: string = 'student_001'): AnalyzeResponse {
   if (userId === 'student_002') {
     return {
@@ -170,9 +223,46 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
+function getUrlResponse(url?: string): AnalyzeResponse {
+  const displayUrl = url || 'https://instagram.com/reel/demo_reel'
+  return {
+    success: true,
+    runId: 'RUN_URL_ANALYSIS',
+    result: {
+      currentReel: { reelId: 'REEL_URL_INPUT', title: `Analyzed Reel: ${displayUrl}` },
+      interestDetected: { topic: 'System Architecture & Microservices', confidence: 'High' },
+      why: `AI pipeline retrieved Reel URL metadata and analyzed technical keywords from: ${displayUrl}`,
+      recommendedTechReel: { candidateId: 'CAND_URL_WINNER', title: 'High-Level System Design & Distributed Services' },
+      category: 'HLD',
+      whyThisRecommendation: `Connects topics extracted from ${displayUrl} into core High-Level System Design concepts.`,
+      difficulty: 'Intermediate',
+      confidence: 'High',
+    },
+    evidence: {
+      interestPath: ['Reel URL Metadata', 'Microservices', 'Distributed Systems', 'HLD'],
+      selectionFactors: ['URL metadata match', 'High architectural depth'],
+    },
+    workflow: { status: 'completed', stepsCompleted: 7 },
+  }
+}
+
 export const api = {
   // POST /api/analyze (Dataset / URL mode)
   async analyze(req: AnalyzeRequest): Promise<AnalyzeResponse> {
+    if (req.inputMode === 'url') {
+      if (USE_MOCKS) return delay(getUrlResponse(req.url), 500)
+      try {
+        const res = await request<AnalyzeResponse>('/api/analyze', {
+          method: 'POST',
+          body: JSON.stringify(req),
+        })
+        if (res && res.success && res.result) return res
+        return getUrlResponse(req.url)
+      } catch {
+        return getUrlResponse(req.url)
+      }
+    }
+
     if (USE_MOCKS) {
       return delay(getDatasetResponse(req.userId), 500)
     }
@@ -309,10 +399,10 @@ export const api = {
 
   // GET /api/users/{userId}/interests
   async getInterests(userId: string): Promise<Interest[]> {
-    if (USE_MOCKS) return delay(mockInterests)
+    if (USE_MOCKS) return delay(getMockInterests(userId))
     try {
       const data = await request<any>(`/api/users/${userId}/interests`)
-      if (data && data.primaryInterests) {
+      if (data && data.primaryInterests && data.primaryInterests.length > 0) {
         const list: Interest[] = []
         data.primaryInterests.forEach((item: any, i: number) => {
           list.push({
@@ -336,17 +426,17 @@ export const api = {
             recentActivity: [],
           })
         })
-        return list.length > 0 ? list : mockInterests
+        return list.length > 0 ? list : getMockInterests(userId)
       }
-      return Array.isArray(data) ? data : mockInterests
+      return getMockInterests(userId)
     } catch {
-      return mockInterests
+      return getMockInterests(userId)
     }
   },
 
   // GET /api/users/{userId}/interest-inference
   async getInterestInference(userId: string): Promise<InterestInference> {
-    if (USE_MOCKS) return delay(mockInterestInference)
+    if (USE_MOCKS) return delay(getMockInference(userId))
     try {
       const data = await request<any>(`/api/users/${userId}/interests`)
       if (data && data.primaryInterests && data.primaryInterests.length > 0) {
@@ -356,9 +446,9 @@ export const api = {
           note: 'Primary technical domain inferred from high engagement consistency.',
         }
       }
-      return mockInterestInference
+      return getMockInference(userId)
     } catch {
-      return mockInterestInference
+      return getMockInference(userId)
     }
   },
 
